@@ -3,12 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Mochila Escolar</title>
+
+<title>Mochila Escolar Digital</title>
 
 <style>
 
 body{
-font-family:Arial;
+font-family:Arial, sans-serif;
 margin:0;
 background:#e8eef5;
 }
@@ -26,15 +27,11 @@ margin:auto;
 padding:20px;
 }
 
-form{
-margin-bottom:20px;
-}
-
 input{
 padding:10px;
 border-radius:8px;
 border:1px solid #ccc;
-width:70%;
+margin:5px 0;
 }
 
 button{
@@ -42,6 +39,7 @@ padding:10px;
 border:none;
 border-radius:8px;
 cursor:pointer;
+margin-left:5px;
 }
 
 .add{
@@ -90,10 +88,8 @@ color:gray;
 
 <div class="container">
 
-<form id="formMateria">
 <input id="materiaInput" placeholder="Nome da matéria">
-<button class="add" type="submit">Adicionar matéria</button>
-</form>
+<button class="add" type="button" id="btnMateria">Adicionar matéria</button>
 
 <div id="listaMaterias"></div>
 
@@ -121,27 +117,26 @@ let tarefasHTML="";
 
 m.tarefas.forEach((t,j)=>{
 
-tarefasHTML+=`
+tarefasHTML += `
 <div class="tarefa">
 <span class="${t.concluida ? 'concluida':''}">${t.nome}</span>
 
 <div>
-<button onclick="concluir(${i},${j})">✔</button>
-<button class="delete" onclick="excluirTarefa(${i},${j})">X</button>
+<button type="button" onclick="concluir(${i},${j})">✔</button>
+<button type="button" class="delete" onclick="excluirTarefa(${i},${j})">X</button>
 </div>
-
 </div>
 `;
 
 });
 
-div.innerHTML=`
+div.innerHTML = `
 
 <h2>${m.nome}</h2>
 
 <input id="tarefa${i}" placeholder="Nova tarefa">
-<button onclick="addTarefa(${i})">Adicionar</button>
-<button class="delete" onclick="excluirMateria(${i})">Excluir matéria</button>
+<button type="button" onclick="addTarefa(${i})">Adicionar</button>
+<button type="button" class="delete" onclick="excluirMateria(${i})">Excluir matéria</button>
 
 ${tarefasHTML}
 
@@ -155,9 +150,7 @@ salvar();
 
 }
 
-document.getElementById("formMateria").addEventListener("submit", function(e){
-
-e.preventDefault();
+document.getElementById("btnMateria").addEventListener("click", function(){
 
 const input = document.getElementById("materiaInput");
 const nome = input.value.trim();
@@ -182,8 +175,8 @@ render();
 
 function addTarefa(i){
 
-let input = document.getElementById("tarefa"+i);
-let nome = input.value.trim();
+const input = document.getElementById("tarefa"+i);
+const nome = input.value.trim();
 
 if(nome==="") return;
 
