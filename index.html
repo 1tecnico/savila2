@@ -1,17 +1,15 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<title>Mochila Escolar Digital</title>
+<title>Mochila Escolar</title>
 
 <style>
-
 body{
-font-family:Arial, sans-serif;
+font-family: Arial, sans-serif;
 margin:0;
-background:#e8eef5;
+background:#e6edf5;
 }
 
 header{
@@ -22,34 +20,25 @@ padding:20px;
 }
 
 .container{
-max-width:900px;
+max-width:800px;
 margin:auto;
 padding:20px;
 }
 
 input{
 padding:10px;
+width:70%;
 border-radius:8px;
 border:1px solid #ccc;
-margin:5px 0;
 }
 
 button{
-padding:10px;
+padding:10px 15px;
 border:none;
 border-radius:8px;
-cursor:pointer;
-margin-left:5px;
-}
-
-.add{
 background:#134074;
 color:white;
-}
-
-.delete{
-background:#c1121f;
-color:white;
+cursor:pointer;
 }
 
 .materia{
@@ -57,25 +46,8 @@ background:white;
 padding:15px;
 border-radius:10px;
 margin-top:15px;
-box-shadow:0 3px 8px rgba(0,0,0,0.1);
+box-shadow:0 2px 6px rgba(0,0,0,0.1);
 }
-
-.materia h2{
-margin-top:0;
-color:#0b2545;
-}
-
-.tarefa{
-display:flex;
-justify-content:space-between;
-margin-top:5px;
-}
-
-.concluida{
-text-decoration:line-through;
-color:gray;
-}
-
 </style>
 </head>
 
@@ -83,13 +55,12 @@ color:gray;
 
 <header>
 <h1>🎒 Mochila Escolar Digital</h1>
-<p>Organize suas matérias e tarefas</p>
 </header>
 
 <div class="container">
 
-<input id="materiaInput" placeholder="Nome da matéria">
-<button class="add" type="button" id="btnMateria">Adicionar matéria</button>
+<input id="materiaInput" placeholder="Digite o nome da matéria">
+<button id="btnAdicionar">Adicionar</button>
 
 <div id="listaMaterias"></div>
 
@@ -97,118 +68,25 @@ color:gray;
 
 <script>
 
-let materias = JSON.parse(localStorage.getItem("materias")) || [];
-
-function salvar(){
-localStorage.setItem("materias", JSON.stringify(materias));
-}
-
-function render(){
-
-const container = document.getElementById("listaMaterias");
-container.innerHTML="";
-
-materias.forEach((m,i)=>{
-
-let div = document.createElement("div");
-div.className="materia";
-
-let tarefasHTML="";
-
-m.tarefas.forEach((t,j)=>{
-
-tarefasHTML += `
-<div class="tarefa">
-<span class="${t.concluida ? 'concluida':''}">${t.nome}</span>
-
-<div>
-<button type="button" onclick="concluir(${i},${j})">✔</button>
-<button type="button" class="delete" onclick="excluirTarefa(${i},${j})">X</button>
-</div>
-</div>
-`;
-
-});
-
-div.innerHTML = `
-
-<h2>${m.nome}</h2>
-
-<input id="tarefa${i}" placeholder="Nova tarefa">
-<button type="button" onclick="addTarefa(${i})">Adicionar</button>
-<button type="button" class="delete" onclick="excluirMateria(${i})">Excluir matéria</button>
-
-${tarefasHTML}
-
-`;
-
-container.appendChild(div);
-
-});
-
-salvar();
-
-}
-
-document.getElementById("btnMateria").addEventListener("click", function(){
-
 const input = document.getElementById("materiaInput");
+const botao = document.getElementById("btnAdicionar");
+const lista = document.getElementById("listaMaterias");
+
+botao.addEventListener("click", function(){
+
 const nome = input.value.trim();
 
-if(nome==="") return;
+if(nome === "") return;
 
-materias.push({
-nome:nome,
-tarefas:[]
+const div = document.createElement("div");
+div.className = "materia";
+div.textContent = nome;
+
+lista.appendChild(div);
+
+input.value = "";
+
 });
-
-input.value="";
-
-render();
-
-});
-
-function excluirMateria(i){
-materias.splice(i,1);
-render();
-}
-
-function addTarefa(i){
-
-const input = document.getElementById("tarefa"+i);
-const nome = input.value.trim();
-
-if(nome==="") return;
-
-materias[i].tarefas.push({
-nome:nome,
-concluida:false
-});
-
-input.value="";
-
-render();
-
-}
-
-function concluir(i,j){
-
-materias[i].tarefas[j].concluida =
-!materias[i].tarefas[j].concluida;
-
-render();
-
-}
-
-function excluirTarefa(i,j){
-
-materias[i].tarefas.splice(j,1);
-
-render();
-
-}
-
-render();
 
 </script>
 
