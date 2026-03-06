@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mochila Escolar Digital</title>
+
+<style>
+
+body{
+font-family: Arial, sans-serif;
+margin:0;
+background:#e6edf5;
+}
+
+header{
+background:#0f2a44;
+color:white;
+padding:20px;
+text-align:center;
+}
+
+.container{
+max-width:900px;
+margin:auto;
+padding:20px;
+}
+
+.controls{
+display:flex;
+gap:10px;
+margin-bottom:20px;
+}
+
+input{
+padding:10px;
+border-radius:8px;
+border:1px solid #ccc;
+flex:1;
+}
+
+button{
+padding:10px 15px;
+border:none;
+border-radius:8px;
+cursor:pointer;
+font-weight:bold;
+}
+
+.add{
+background:#1f4e79;
+color:white;
+}
+
+.delete{
+background:#b02a37;
+color:white;
+}
+
+.materia{
+background:white;
+border-radius:10px;
+padding:15px;
+margin-bottom:15px;
+box-shadow:0 2px 8px rgba(0,0,0,0.1);
+}
+
+.materia-header{
+display:flex;
+justify-content:space-between;
+align-items:center;
+}
+
+.materia h2{
+margin:0;
+color:#0f2a44;
+}
+
+.tarefa{
+display:flex;
+align-items:center;
+justify-content:space-between;
+padding:5px 0;
+}
+
+.tarefa span.concluida{
+text-decoration:line-through;
+color:gray;
+}
+
+.tarefa button{
+margin-left:5px;
+}
+
+footer{
+text-align:center;
+padding:10px;
+color:#555;
+}
+
+</style>
+</head>
+
+<body>
+
+<header>
+<h1>🎒 Mochila Escolar Digital</h1>
+<p>Organize suas matérias, conteúdos e tarefas</p>
+</header>
+
+<div class="container">
+
+<div class="controls">
+<input id="novaMateria" placeholder="Nome da matéria">
+<button class="add" onclick="adicionarMateria()">Adicionar</button>
+</div>
+
+<div id="materias"></div>
+
+</div>
+
+<footer>
+2026 - Mochila Escolar
+</footer>
+
+<script>
+
+let materias = JSON.parse(localStorage.getItem("materias")) || [];
+
+function salvar(){
+localStorage.setItem("materias",JSON.stringify(materias));
+}
+
+function render(){
+
+const container = document.getElementById("materias");
+container.innerHTML="";
+
+materias.forEach((m,index)=>{
+
+const div = document.createElement("div");
+div.className="materia";
+
+div.innerHTML=`
+<div class="materia-header">
+<h2>${m.nome}</h2>
+<button class="delete" onclick="excluirMateria(${index})">Excluir</button>
+</div>
+
+<div class="controls">
+<input id="tarefa-${index}" placeholder="Nova tarefa ou conteúdo">
+<button class="add" onclick="adicionarTarefa(${index})">Adicionar</button>
+</div>
+
+<div>
+${m.tarefas.map((t,i)=>`
+<div class="tarefa">
+<span class="${t.concluida ? 'concluida':''}">
+${t.nome}
+</span>
+
+<div>
+<button onclick="concluirTarefa(${index},${i})">✔</button>
+<button class="delete" onclick="excluirTarefa(${index},${i})">X</button>
+</div>
+</div>
+`).join("")}
+</div>
+`;
+
+container.appendChild(div);
+
+});
+
+salvar();
+}
+
+function adicionarMateria(){
+
+const nome = document.getElementById("novaMateria").value;
+
+if(nome==="") return;
+
+materias.push({
+nome:nome,
+tarefas:[]
+});
+
+document.getElementById("novaMateria").value="";
+
+render();
+
+}
+
+function excluirMateria(i){
+
+materias.splice(i,1);
+
+render();
+
+}
+
+function adicionarTarefa(i){
+
+const input = document.getElementById(`tarefa-${i}`);
+const nome = input.value;
+
+if(nome==="") return;
+
+materias[i].tarefas.push({
+nome:nome,
+concluida:false
+});
+
+input.value="";
+
+render();
+
+}
+
+function concluirTarefa(m,t){
+
+materias[m].tarefas[t].concluida =
+!materias[m].tarefas[t].concluida;
+
+render();
+
+}
+
+function excluirTarefa(m,t){
+
+materias[m].tarefas.splice(t,1);
+
+render();
+
+}
+
+render();
+
+</script>
+
+</body>
+</html>
