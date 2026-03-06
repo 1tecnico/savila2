@@ -3,21 +3,21 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Mochila Escolar Digital</title>
+<title>Mochila Escolar</title>
 
 <style>
 
 body{
-font-family: Arial, sans-serif;
+font-family:Arial;
 margin:0;
-background:#e6edf5;
+background:#e8eef5;
 }
 
 header{
-background:#0f2a44;
+background:#0b2545;
 color:white;
-padding:20px;
 text-align:center;
+padding:20px;
 }
 
 .container{
@@ -26,9 +26,7 @@ margin:auto;
 padding:20px;
 }
 
-.controls{
-display:flex;
-gap:10px;
+form{
 margin-bottom:20px;
 }
 
@@ -36,66 +34,48 @@ input{
 padding:10px;
 border-radius:8px;
 border:1px solid #ccc;
-flex:1;
+width:70%;
 }
 
 button{
-padding:10px 15px;
+padding:10px;
 border:none;
 border-radius:8px;
 cursor:pointer;
-font-weight:bold;
 }
 
 .add{
-background:#1f4e79;
+background:#134074;
 color:white;
 }
 
 .delete{
-background:#b02a37;
+background:#c1121f;
 color:white;
 }
 
 .materia{
 background:white;
-border-radius:10px;
 padding:15px;
-margin-bottom:15px;
-box-shadow:0 2px 8px rgba(0,0,0,0.1);
-}
-
-.materia-header{
-display:flex;
-justify-content:space-between;
-align-items:center;
+border-radius:10px;
+margin-top:15px;
+box-shadow:0 3px 8px rgba(0,0,0,0.1);
 }
 
 .materia h2{
-margin:0;
-color:#0f2a44;
+margin-top:0;
+color:#0b2545;
 }
 
 .tarefa{
 display:flex;
-align-items:center;
 justify-content:space-between;
-padding:5px 0;
+margin-top:5px;
 }
 
-.tarefa span.concluida{
+.concluida{
 text-decoration:line-through;
 color:gray;
-}
-
-.tarefa button{
-margin-left:5px;
-}
-
-footer{
-text-align:center;
-padding:10px;
-color:#555;
 }
 
 </style>
@@ -105,67 +85,66 @@ color:#555;
 
 <header>
 <h1>🎒 Mochila Escolar Digital</h1>
-<p>Organize suas matérias, conteúdos e tarefas</p>
+<p>Organize suas matérias e tarefas</p>
 </header>
 
 <div class="container">
 
-<div class="controls">
-<input id="novaMateria" placeholder="Nome da matéria">
-<button class="add" onclick="adicionarMateria()">Adicionar</button>
+<form id="formMateria">
+<input id="materiaInput" placeholder="Nome da matéria">
+<button class="add" type="submit">Adicionar matéria</button>
+</form>
+
+<div id="listaMaterias"></div>
+
 </div>
-
-<div id="materias"></div>
-
-</div>
-
-<footer>
-2026 - Mochila Escolar
-</footer>
 
 <script>
 
 let materias = JSON.parse(localStorage.getItem("materias")) || [];
 
 function salvar(){
-localStorage.setItem("materias",JSON.stringify(materias));
+localStorage.setItem("materias", JSON.stringify(materias));
 }
 
 function render(){
 
-const container = document.getElementById("materias");
+const container = document.getElementById("listaMaterias");
 container.innerHTML="";
 
-materias.forEach((m,index)=>{
+materias.forEach((m,i)=>{
 
-const div = document.createElement("div");
+let div = document.createElement("div");
 div.className="materia";
 
-div.innerHTML=`
-<div class="materia-header">
-<h2>${m.nome}</h2>
-<button class="delete" onclick="excluirMateria(${index})">Excluir</button>
-</div>
+let tarefasHTML="";
 
-<div class="controls">
-<input id="tarefa-${index}" placeholder="Nova tarefa ou conteúdo">
-<button class="add" onclick="adicionarTarefa(${index})">Adicionar</button>
-</div>
+m.tarefas.forEach((t,j)=>{
 
-<div>
-${m.tarefas.map((t,i)=>`
+tarefasHTML+=`
 <div class="tarefa">
-<span class="${t.concluida ? 'concluida':''}">
-${t.nome}
-</span>
+<span class="${t.concluida ? 'concluida':''}">${t.nome}</span>
 
 <div>
-<button onclick="concluirTarefa(${index},${i})">✔</button>
-<button class="delete" onclick="excluirTarefa(${index},${i})">X</button>
+<button onclick="concluir(${i},${j})">✔</button>
+<button class="delete" onclick="excluirTarefa(${i},${j})">X</button>
 </div>
+
 </div>
-`).join("")}
-</div>
+`;
+
+});
+
+div.innerHTML=`
+
+<h2>${m.nome}</h2>
+
+<input id="tarefa${i}" placeholder="Nova tarefa">
+<button onclick="addTarefa(${i})">Adicionar</button>
+<button class="delete" onclick="excluirMateria(${i})">Excluir matéria</button>
+
+${tarefasHTML}
+
 `;
 
 container.appendChild(div);
@@ -173,11 +152,15 @@ container.appendChild(div);
 });
 
 salvar();
+
 }
 
-function adicionarMateria(){
+document.getElementById("formMateria").addEventListener("submit", function(e){
 
-const nome = document.getElementById("novaMateria").value;
+e.preventDefault();
+
+const input = document.getElementById("materiaInput");
+const nome = input.value.trim();
 
 if(nome==="") return;
 
@@ -186,24 +169,21 @@ nome:nome,
 tarefas:[]
 });
 
-document.getElementById("novaMateria").value="";
+input.value="";
 
 render();
 
-}
+});
 
 function excluirMateria(i){
-
 materias.splice(i,1);
-
 render();
-
 }
 
-function adicionarTarefa(i){
+function addTarefa(i){
 
-const input = document.getElementById(`tarefa-${i}`);
-const nome = input.value;
+let input = document.getElementById("tarefa"+i);
+let nome = input.value.trim();
 
 if(nome==="") return;
 
@@ -218,18 +198,18 @@ render();
 
 }
 
-function concluirTarefa(m,t){
+function concluir(i,j){
 
-materias[m].tarefas[t].concluida =
-!materias[m].tarefas[t].concluida;
+materias[i].tarefas[j].concluida =
+!materias[i].tarefas[j].concluida;
 
 render();
 
 }
 
-function excluirTarefa(m,t){
+function excluirTarefa(i,j){
 
-materias[m].tarefas.splice(t,1);
+materias[i].tarefas.splice(j,1);
 
 render();
 
