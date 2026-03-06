@@ -6,6 +6,7 @@
 <title>Mochila Escolar</title>
 
 <style>
+
 body{
 font-family: Arial, sans-serif;
 margin:0;
@@ -20,29 +21,34 @@ padding:20px;
 }
 
 .container{
-max-width:800px;
+max-width:900px;
 margin:auto;
 padding:20px;
 }
 
-form{
-margin-bottom:20px;
-}
-
 input{
-padding:10px;
-width:70%;
-border-radius:8px;
+padding:8px;
+border-radius:6px;
 border:1px solid #ccc;
+margin:5px 0;
 }
 
 button{
-padding:10px 15px;
+padding:8px 12px;
 border:none;
-border-radius:8px;
+border-radius:6px;
+cursor:pointer;
+margin-left:5px;
+}
+
+.add{
 background:#134074;
 color:white;
-cursor:pointer;
+}
+
+.delete{
+background:#c1121f;
+color:white;
 }
 
 .materia{
@@ -52,6 +58,18 @@ border-radius:10px;
 margin-top:15px;
 box-shadow:0 2px 6px rgba(0,0,0,0.1);
 }
+
+.tarefa{
+display:flex;
+justify-content:space-between;
+margin-top:5px;
+}
+
+.concluida{
+text-decoration:line-through;
+color:gray;
+}
+
 </style>
 </head>
 
@@ -64,8 +82,8 @@ box-shadow:0 2px 6px rgba(0,0,0,0.1);
 <div class="container">
 
 <form id="formMateria">
-<input id="materiaInput" placeholder="Digite o nome da matéria">
-<button type="submit">Adicionar</button>
+<input id="materiaInput" placeholder="Nome da matéria">
+<button class="add" type="submit">Adicionar matéria</button>
 </form>
 
 <div id="listaMaterias"></div>
@@ -74,27 +92,129 @@ box-shadow:0 2px 6px rgba(0,0,0,0.1);
 
 <script>
 
+let materias = JSON.parse(localStorage.getItem("materias")) || [];
+
 const form = document.getElementById("formMateria");
 const input = document.getElementById("materiaInput");
-const lista = document.getElementById("listaMaterias");
 
-form.addEventListener("submit", function(event){
+form.addEventListener("submit", function(e){
 
-event.preventDefault(); // impede a página de recarregar
+e.preventDefault();
 
 const nome = input.value.trim();
-
 if(nome === "") return;
 
-const div = document.createElement("div");
-div.className = "materia";
-div.textContent = nome;
+materias.push({
+nome:nome,
+tarefas:[]
+});
 
-lista.appendChild(div);
+input.value="";
 
-input.value = ""; // limpa somente depois de adicionar
+salvar();
+render();
 
 });
+
+function salvar(){
+localStorage.setItem("materias", JSON.stringify(materias));
+}
+
+function render(){
+
+const container = document.getElementById("listaMaterias");
+container.innerHTML="";
+
+materias.forEach((m,i)=>{
+
+let tarefasHTML="";
+
+m.tarefas.forEach((t,j)=>{
+
+tarefasHTML+=`
+<div class="tarefa">
+<span class="${t.concluida ? 'concluida':''}">
+${t.nome}
+</span>
+
+<div>
+<button onclick="concluir(${i},${j})">✔</button>
+<button class="delete" onclick="excluirTarefa(${i},${j})">X</button>
+</div>
+</div>
+`;
+
+});
+
+const div=document.createElement("div");
+div.className="materia";
+
+div.innerHTML=`
+
+<h2>${m.nome}</h2>
+
+<input id="tarefa${i}" placeholder="Nova tarefa">
+<button class="add" onclick="addTarefa(${i})">Adicionar</button>
+<button class="delete" onclick="excluirMateria(${i})">Excluir matéria</button>
+
+${tarefasHTML}
+
+`;
+
+container.appendChild(div);
+
+});
+
+}
+
+function excluirMateria(i){
+
+materias.splice(i,1);
+
+salvar();
+render();
+
+}
+
+function addTarefa(i){
+
+const input=document.getElementById("tarefa"+i);
+const nome=input.value.trim();
+
+if(nome==="") return;
+
+materias[i].tarefas.push({
+nome:nome,
+concluida:false
+});
+
+input.value="";
+
+salvar();
+render();
+
+}
+
+function excluirTarefa(i,j){
+
+materias[i].tarefas.splice(j,1);
+
+salvar();
+render();
+
+}
+
+function concluir(i,j){
+
+materias[i].tarefas[j].concluida=
+!materias[i].tarefas[j].concluida;
+
+salvar();
+render();
+
+}
+
+render();
 
 </script>
 
