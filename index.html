@@ -3,236 +3,218 @@
 <head>
 <meta charset="UTF-8">
 <title>Mochila Digital</title>
-
 <style>
 body{
-font-family:Arial;
-margin:0;
-background:#1e3a5f;
-color:white;
+  font-family: Arial, sans-serif;
+  margin:0;
+  background:#1e3a5f;
+  color:white;
 }
 
 header{
-background:#132a44;
-padding:15px;
-text-align:center;
-font-size:22px;
+  background:#132a44;
+  padding:15px;
+  text-align:center;
+  font-size:22px;
 }
 
 .menu{
-display:flex;
-background:#16365c;
+  display:flex;
+  background:#16365c;
 }
 
 .menu button{
-flex:1;
-padding:10px;
-border:none;
-background:#16365c;
-color:white;
-cursor:pointer;
+  flex:1;
+  padding:10px;
+  border:none;
+  background:#16365c;
+  color:white;
+  cursor:pointer;
 }
 
 .menu button:hover{
-background:#2e5a8a;
+  background:#28507f;
 }
 
 .aba{
-display:none;
-padding:20px;
+  display:none;
+  padding:20px;
 }
 
 .ativa{
-display:block;
+  display:block;
 }
 
 input{
-padding:6px;
-margin:5px;
+  padding:6px;
+  margin:5px;
+  border-radius:4px;
+  border:none;
 }
 
 button{
-padding:6px 10px;
-margin:5px;
-cursor:pointer;
+  padding:6px 10px;
+  margin:5px;
+  cursor:pointer;
+  border:none;
+  border-radius:4px;
+  background:#28507f;
+  color:white;
+}
+
+button:hover{
+  background:#3a6da8;
 }
 
 .item{
-background:#16365c;
-padding:8px;
-margin:6px 0;
+  background:#16365c;
+  padding:8px;
+  margin:6px 0;
+  border-radius:5px;
 }
 </style>
-
 </head>
-
 <body>
 
 <header>🎒 Mochila Digital</header>
 
 <div class="menu">
-<button onclick="abrir('materias')">Matérias</button>
-<button onclick="abrir('horarios')">Horários</button>
-<button onclick="abrir('tarefas')">Tarefas</button>
+  <button onclick="abrir('materias')">Matérias</button>
+  <button onclick="abrir('horarios')">Horários</button>
+  <button onclick="abrir('tarefas')">Tarefas</button>
 </div>
 
 <div id="materias" class="aba ativa">
-<h2>Matérias</h2>
-
-<input id="materia">
-<button onclick="addMateria()">Adicionar</button>
-
-<div id="listaMaterias"></div>
+  <h2>Matérias</h2>
+  <input id="materiaInput" placeholder="Nova matéria">
+  <button onclick="addMateria()">Adicionar</button>
+  <div id="listaMaterias"></div>
 </div>
 
 <div id="horarios" class="aba">
-<h2>Horários</h2>
-
-<input id="horario">
-<button onclick="addHorario()">Adicionar</button>
-
-<div id="listaHorarios"></div>
+  <h2>Horários</h2>
+  <input id="horarioMateria" placeholder="Matéria">
+  <input id="horarioHora" placeholder="Ex: Segunda 08:00">
+  <button onclick="addHorario()">Adicionar</button>
+  <div id="listaHorarios"></div>
 </div>
 
 <div id="tarefas" class="aba">
-<h2>Tarefas</h2>
-
-<input id="tarefa">
-<button onclick="addTarefa()">Adicionar</button>
-
-<div id="listaTarefas"></div>
+  <h2>Tarefas</h2>
+  <input id="tarefaInput" placeholder="Nova tarefa">
+  <button onclick="addTarefa()">Adicionar</button>
+  <div id="listaTarefas"></div>
 </div>
 
 <script>
+// Pega do localStorage ou cria arrays vazios
+let materias = JSON.parse(localStorage.getItem("materias")) || [];
+let horarios = JSON.parse(localStorage.getItem("horarios")) || [];
+let tarefas = JSON.parse(localStorage.getItem("tarefas")) || [];
 
-let materias=[]
-let horarios=[]
-let tarefas=[]
+// Salva tudo no navegador
+function salvar(){
+  localStorage.setItem("materias", JSON.stringify(materias));
+  localStorage.setItem("horarios", JSON.stringify(horarios));
+  localStorage.setItem("tarefas", JSON.stringify(tarefas));
+}
 
+// Muda de aba
 function abrir(id){
+  document.querySelectorAll(".aba").forEach(a => a.classList.remove("ativa"));
+  document.getElementById(id).classList.add("ativa");
+}
 
-document.querySelectorAll(".aba").forEach(function(a){
-a.classList.remove("ativa")
-})
-
-document.getElementById(id).classList.add("ativa")
-
+// --- MATÉRIAS ---
+function renderMaterias(){
+  let lista = document.getElementById("listaMaterias");
+  lista.innerHTML = "";
+  materias.forEach((m,i)=>{
+    let div = document.createElement("div");
+    div.className = "item";
+    div.innerHTML = m + ` <button onclick="delMateria(${i})">Excluir</button>`;
+    lista.appendChild(div);
+  });
 }
 
 function addMateria(){
-
-let v=document.getElementById("materia").value
-
-if(v!=""){
-
-materias.push(v)
-
-document.getElementById("materia").value=""
-
-mostrarMaterias()
-
-}
-
-}
-
-function mostrarMaterias(){
-
-let area=document.getElementById("listaMaterias")
-
-area.innerHTML=""
-
-materias.forEach(function(m,i){
-
-area.innerHTML+=m+" <button onclick='delMateria("+i+")'>Excluir</button><br>"
-
-})
-
+  let val = document.getElementById("materiaInput").value;
+  if(val!=""){
+    materias.push(val);
+    document.getElementById("materiaInput").value="";
+    salvar();
+    renderMaterias();
+  }
 }
 
 function delMateria(i){
+  materias.splice(i,1);
+  salvar();
+  renderMaterias();
+}
 
-materias.splice(i,1)
-
-mostrarMaterias()
-
+// --- HORÁRIOS ---
+function renderHorarios(){
+  let lista = document.getElementById("listaHorarios");
+  lista.innerHTML = "";
+  horarios.forEach((h,i)=>{
+    let div = document.createElement("div");
+    div.className = "item";
+    div.innerHTML = `${h.materia} - ${h.hora} <button onclick="delHorario(${i})">Excluir</button>`;
+    lista.appendChild(div);
+  });
 }
 
 function addHorario(){
-
-let v=document.getElementById("horario").value
-
-if(v!=""){
-
-horarios.push(v)
-
-document.getElementById("horario").value=""
-
-mostrarHorarios()
-
-}
-
-}
-
-function mostrarHorarios(){
-
-let area=document.getElementById("listaHorarios")
-
-area.innerHTML=""
-
-horarios.forEach(function(h,i){
-
-area.innerHTML+=h+" <button onclick='delHorario("+i+")'>Excluir</button><br>"
-
-})
-
+  let mat = document.getElementById("horarioMateria").value;
+  let hora = document.getElementById("horarioHora").value;
+  if(mat!="" && hora!=""){
+    horarios.push({materia:mat,hora:hora});
+    document.getElementById("horarioMateria").value="";
+    document.getElementById("horarioHora").value="";
+    salvar();
+    renderHorarios();
+  }
 }
 
 function delHorario(i){
+  horarios.splice(i,1);
+  salvar();
+  renderHorarios();
+}
 
-horarios.splice(i,1)
-
-mostrarHorarios()
-
+// --- TAREFAS ---
+function renderTarefas(){
+  let lista = document.getElementById("listaTarefas");
+  lista.innerHTML = "";
+  tarefas.forEach((t,i)=>{
+    let div = document.createElement("div");
+    div.className = "item";
+    div.innerHTML = t + ` <button onclick="delTarefa(${i})">Excluir</button>`;
+    lista.appendChild(div);
+  });
 }
 
 function addTarefa(){
-
-let v=document.getElementById("tarefa").value
-
-if(v!=""){
-
-tarefas.push(v)
-
-document.getElementById("tarefa").value=""
-
-mostrarTarefas()
-
-}
-
-}
-
-function mostrarTarefas(){
-
-let area=document.getElementById("listaTarefas")
-
-area.innerHTML=""
-
-tarefas.forEach(function(t,i){
-
-area.innerHTML+=t+" <button onclick='delTarefa("+i+")'>Excluir</button><br>"
-
-})
-
+  let val = document.getElementById("tarefaInput").value;
+  if(val!=""){
+    tarefas.push(val);
+    document.getElementById("tarefaInput").value="";
+    salvar();
+    renderTarefas();
+  }
 }
 
 function delTarefa(i){
-
-tarefas.splice(i,1)
-
-mostrarTarefas()
-
+  tarefas.splice(i,1);
+  salvar();
+  renderTarefas();
 }
 
+// --- Inicializa ---
+renderMaterias();
+renderHorarios();
+renderTarefas();
 </script>
 
 </body>
