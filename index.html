@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Mochila Escolar</title>
+<title>Mochila Escolar Digital</title>
 
 <style>
 
@@ -81,10 +81,8 @@ color:gray;
 
 <div class="container">
 
-<form id="formMateria">
 <input id="materiaInput" placeholder="Nome da matéria">
-<button class="add" type="submit">Adicionar matéria</button>
-</form>
+<button class="add" onclick="addMateria()">Adicionar matéria</button>
 
 <div id="listaMaterias"></div>
 
@@ -93,28 +91,6 @@ color:gray;
 <script>
 
 let materias = JSON.parse(localStorage.getItem("materias")) || [];
-
-const form = document.getElementById("formMateria");
-const input = document.getElementById("materiaInput");
-
-form.addEventListener("submit", function(e){
-
-e.preventDefault();
-
-const nome = input.value.trim();
-if(nome === "") return;
-
-materias.push({
-nome:nome,
-tarefas:[]
-});
-
-input.value="";
-
-salvar();
-render();
-
-});
 
 function salvar(){
 localStorage.setItem("materias", JSON.stringify(materias));
@@ -133,9 +109,7 @@ m.tarefas.forEach((t,j)=>{
 
 tarefasHTML+=`
 <div class="tarefa">
-<span class="${t.concluida ? 'concluida':''}">
-${t.nome}
-</span>
+<span class="${t.concluida ? 'concluida':''}">${t.nome}</span>
 
 <div>
 <button onclick="concluir(${i},${j})">✔</button>
@@ -165,13 +139,32 @@ container.appendChild(div);
 
 });
 
+salvar();
+
+}
+
+function addMateria(){
+
+const input=document.getElementById("materiaInput");
+const nome=input.value.trim();
+
+if(nome==="") return;
+
+materias.push({
+nome:nome,
+tarefas:[]
+});
+
+input.value="";
+
+render();
+
 }
 
 function excluirMateria(i){
 
 materias.splice(i,1);
 
-salvar();
 render();
 
 }
@@ -190,7 +183,6 @@ concluida:false
 
 input.value="";
 
-salvar();
 render();
 
 }
@@ -199,17 +191,15 @@ function excluirTarefa(i,j){
 
 materias[i].tarefas.splice(j,1);
 
-salvar();
 render();
 
 }
 
 function concluir(i,j){
 
-materias[i].tarefas[j].concluida=
+materias[i].tarefas[j].concluida =
 !materias[i].tarefas[j].concluida;
 
-salvar();
 render();
 
 }
