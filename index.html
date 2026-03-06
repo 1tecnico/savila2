@@ -1,74 +1,79 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-br">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<title>Mochila Escolar Digital</title>
+<title>Mochila Digital</title>
 
 <style>
 
 body{
-font-family: Arial, sans-serif;
+font-family: Arial;
+background:#1f3a5f;
 margin:0;
-background:#e6edf5;
+color:white;
 }
 
 header{
-background:#0b2545;
-color:white;
+background:#0f2745;
+padding:15px;
 text-align:center;
+font-size:24px;
+}
+
+.tabs{
+display:flex;
+background:#16345a;
+}
+
+.tab{
+flex:1;
+padding:12px;
+cursor:pointer;
+border:none;
+background:#16345a;
+color:white;
+font-size:16px;
+}
+
+.tab:hover{
+background:#244a78;
+}
+
+.content{
+display:none;
 padding:20px;
 }
 
-.container{
-max-width:900px;
-margin:auto;
-padding:20px;
-}
-
-input{
-padding:8px;
-border-radius:6px;
-border:1px solid #ccc;
-margin:5px 0;
+.active{
+display:block;
 }
 
 button{
-padding:8px 12px;
+background:#244a78;
+color:white;
 border:none;
-border-radius:6px;
+padding:6px 10px;
+margin:4px;
 cursor:pointer;
-margin-left:5px;
+border-radius:4px;
 }
 
-.add{
-background:#134074;
-color:white;
+button:hover{
+background:#3566a3;
 }
 
-.delete{
-background:#c1121f;
-color:white;
+input{
+padding:6px;
+margin:5px;
+border-radius:4px;
+border:none;
 }
 
-.materia{
-background:white;
-padding:15px;
-border-radius:10px;
-margin-top:15px;
-box-shadow:0 2px 6px rgba(0,0,0,0.1);
-}
-
-.tarefa{
-display:flex;
-justify-content:space-between;
-margin-top:5px;
-}
-
-.concluida{
-text-decoration:line-through;
-color:gray;
+.card{
+background:#16345a;
+padding:10px;
+margin:10px 0;
+border-radius:6px;
 }
 
 </style>
@@ -76,139 +81,218 @@ color:gray;
 
 <body>
 
-<header>
-<h1>🎒 Mochila Escolar Digital</h1>
-<p>Organize suas matérias e tarefas</p>
-</header>
+<header>🎒 Mochila Digital</header>
 
-<div class="container">
+<div class="tabs">
+<button class="tab" onclick="abrir('materias')">Matérias</button>
+<button class="tab" onclick="abrir('horarios')">Horários</button>
+<button class="tab" onclick="abrir('tarefas')">Tarefas</button>
+</div>
 
-<input id="materiaInput" placeholder="Nome da matéria">
-<button class="add" id="addMateria">Adicionar matéria</button>
+<!-- MATERIAS -->
+<div id="materias" class="content active">
+
+<h2>Adicionar Matéria</h2>
+
+<input id="novaMateria" placeholder="Nome da matéria">
+<button onclick="addMateria()">Adicionar</button>
 
 <div id="listaMaterias"></div>
+
+</div>
+
+<!-- HORARIOS -->
+<div id="horarios" class="content">
+
+<h2>Adicionar Horário</h2>
+
+<input id="materiaHorario" placeholder="Matéria">
+<input id="horaHorario" placeholder="Ex: Segunda 08:00">
+<button onclick="addHorario()">Adicionar</button>
+
+<div id="listaHorarios"></div>
+
+</div>
+
+<!-- TAREFAS -->
+<div id="tarefas" class="content">
+
+<h2>Adicionar Tarefa</h2>
+
+<input id="novaTarefa" placeholder="Descrição da tarefa">
+<button onclick="addTarefa()">Adicionar</button>
+
+<div id="listaTarefas"></div>
 
 </div>
 
 <script>
 
 let materias = JSON.parse(localStorage.getItem("materias")) || [];
+let horarios = JSON.parse(localStorage.getItem("horarios")) || [];
+let tarefas = JSON.parse(localStorage.getItem("tarefas")) || [];
 
 function salvar(){
-localStorage.setItem("materias", JSON.stringify(materias));
+localStorage.setItem("materias",JSON.stringify(materias));
+localStorage.setItem("horarios",JSON.stringify(horarios));
+localStorage.setItem("tarefas",JSON.stringify(tarefas));
 }
 
-function render(){
+function abrir(id){
 
-const lista = document.getElementById("listaMaterias");
-lista.innerHTML="";
+document.querySelectorAll(".content").forEach(c=>{
+c.classList.remove("active")
+})
 
-materias.forEach((materia,i)=>{
+document.getElementById(id).classList.add("active")
 
-const div=document.createElement("div");
-div.className="materia";
+}
 
-let tarefasHTML="";
+function renderMaterias(){
 
-materia.tarefas.forEach((tarefa,j)=>{
+let div = document.getElementById("listaMaterias")
+div.innerHTML=""
 
-tarefasHTML+=`
-<div class="tarefa">
-<span class="${tarefa.concluida ? 'concluida':''}">
-${tarefa.nome}
-</span>
+materias.forEach((m,i)=>{
 
-<div>
-<button onclick="concluir(${i},${j})">✔</button>
-<button class="delete" onclick="excluirTarefa(${i},${j})">X</button>
+div.innerHTML+=`
+<div class="card">
+${m}
+<button onclick="delMateria(${i})">Excluir</button>
 </div>
+`
+
+})
+
+}
+
+function addMateria(){
+
+let nome=document.getElementById("novaMateria").value
+
+if(nome!=""){
+
+materias.push(nome)
+
+document.getElementById("novaMateria").value=""
+
+salvar()
+
+renderMaterias()
+
+}
+
+}
+
+function delMateria(i){
+
+materias.splice(i,1)
+
+salvar()
+
+renderMaterias()
+
+}
+
+function renderHorarios(){
+
+let div=document.getElementById("listaHorarios")
+
+div.innerHTML=""
+
+horarios.forEach((h,i)=>{
+
+div.innerHTML+=`
+<div class="card">
+${h.materia} - ${h.hora}
+<button onclick="delHorario(${i})">Excluir</button>
 </div>
-`;
+`
 
-});
-
-div.innerHTML=`
-
-<h2>${materia.nome}</h2>
-
-<input id="tarefa${i}" placeholder="Nova tarefa">
-<button class="add" onclick="addTarefa(${i})">Adicionar tarefa</button>
-<button class="delete" onclick="excluirMateria(${i})">Excluir matéria</button>
-
-${tarefasHTML}
-
-`;
-
-lista.appendChild(div);
-
-});
-
-salvar();
+})
 
 }
 
-document.getElementById("addMateria").addEventListener("click",function(){
+function addHorario(){
 
-const input=document.getElementById("materiaInput");
-const nome=input.value.trim();
+let materia=document.getElementById("materiaHorario").value
+let hora=document.getElementById("horaHorario").value
 
-if(nome==="") return;
+if(materia!="" && hora!=""){
 
-materias.push({
-nome:nome,
-tarefas:[]
-});
+horarios.push({materia,hora})
 
-input.value="";
+document.getElementById("materiaHorario").value=""
+document.getElementById("horaHorario").value=""
 
-render();
+salvar()
 
-});
-
-function excluirMateria(i){
-
-materias.splice(i,1);
-
-render();
+renderHorarios()
 
 }
 
-function addTarefa(i){
+}
 
-const input=document.getElementById("tarefa"+i);
-const nome=input.value.trim();
+function delHorario(i){
 
-if(nome==="") return;
+horarios.splice(i,1)
 
-materias[i].tarefas.push({
-nome:nome,
-concluida:false
-});
+salvar()
 
-input.value="";
-
-render();
+renderHorarios()
 
 }
 
-function excluirTarefa(i,j){
+function renderTarefas(){
 
-materias[i].tarefas.splice(j,1);
+let div=document.getElementById("listaTarefas")
 
-render();
+div.innerHTML=""
+
+tarefas.forEach((t,i)=>{
+
+div.innerHTML+=`
+<div class="card">
+${t}
+<button onclick="delTarefa(${i})">Excluir</button>
+</div>
+`
+
+})
 
 }
 
-function concluir(i,j){
+function addTarefa(){
 
-materias[i].tarefas[j].concluida =
-!materias[i].tarefas[j].concluida;
+let tarefa=document.getElementById("novaTarefa").value
 
-render();
+if(tarefa!=""){
+
+tarefas.push(tarefa)
+
+document.getElementById("novaTarefa").value=""
+
+salvar()
+
+renderTarefas()
 
 }
 
-render();
+}
+
+function delTarefa(i){
+
+tarefas.splice(i,1)
+
+salvar()
+
+renderTarefas()
+
+}
+
+renderMaterias()
+renderHorarios()
+renderTarefas()
 
 </script>
 
