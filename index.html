@@ -3,7 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Mochila Escolar</title>
+
+<title>Mochila Escolar Digital</title>
 
 <style>
 
@@ -38,6 +39,7 @@ padding:8px 12px;
 border:none;
 border-radius:6px;
 cursor:pointer;
+margin-left:5px;
 }
 
 .add{
@@ -76,12 +78,13 @@ color:gray;
 
 <header>
 <h1>🎒 Mochila Escolar Digital</h1>
+<p>Organize suas matérias e tarefas</p>
 </header>
 
 <div class="container">
 
 <input id="materiaInput" placeholder="Nome da matéria">
-<button class="add" id="addMateriaBtn">Adicionar matéria</button>
+<button class="add" id="addMateria">Adicionar matéria</button>
 
 <div id="listaMaterias"></div>
 
@@ -91,125 +94,63 @@ color:gray;
 
 let materias = JSON.parse(localStorage.getItem("materias")) || [];
 
-const inputMateria = document.getElementById("materiaInput");
-const botaoMateria = document.getElementById("addMateriaBtn");
-const lista = document.getElementById("listaMaterias");
-
 function salvar(){
 localStorage.setItem("materias", JSON.stringify(materias));
 }
 
 function render(){
 
+const lista = document.getElementById("listaMaterias");
 lista.innerHTML="";
 
-materias.forEach((materia, i)=>{
+materias.forEach((materia,i)=>{
 
-const divMateria = document.createElement("div");
-divMateria.className = "materia";
+const div=document.createElement("div");
+div.className="materia";
 
-const titulo = document.createElement("h2");
-titulo.textContent = materia.nome;
+let tarefasHTML="";
 
-const inputTarefa = document.createElement("input");
-inputTarefa.placeholder = "Nova tarefa";
+materia.tarefas.forEach((tarefa,j)=>{
 
-const btnAddTarefa = document.createElement("button");
-btnAddTarefa.textContent = "Adicionar tarefa";
-btnAddTarefa.className = "add";
+tarefasHTML+=`
+<div class="tarefa">
+<span class="${tarefa.concluida ? 'concluida':''}">
+${tarefa.nome}
+</span>
 
-btnAddTarefa.onclick = function(){
-
-const nome = inputTarefa.value.trim();
-if(nome==="") return;
-
-materia.tarefas.push({
-nome:nome,
-concluida:false
-});
-
-inputTarefa.value="";
-
-salvar();
-render();
-
-};
-
-const btnExcluirMateria = document.createElement("button");
-btnExcluirMateria.textContent = "Excluir matéria";
-btnExcluirMateria.className = "delete";
-
-btnExcluirMateria.onclick = function(){
-
-materias.splice(i,1);
-
-salvar();
-render();
-
-};
-
-divMateria.appendChild(titulo);
-divMateria.appendChild(inputTarefa);
-divMateria.appendChild(btnAddTarefa);
-divMateria.appendChild(btnExcluirMateria);
-
-materia.tarefas.forEach((tarefa, j)=>{
-
-const divTarefa = document.createElement("div");
-divTarefa.className = "tarefa";
-
-const texto = document.createElement("span");
-texto.textContent = tarefa.nome;
-
-if(tarefa.concluida){
-texto.classList.add("concluida");
-}
-
-const btnConcluir = document.createElement("button");
-btnConcluir.textContent = "✔";
-
-btnConcluir.onclick = function(){
-
-tarefa.concluida = !tarefa.concluida;
-
-salvar();
-render();
-
-};
-
-const btnExcluirTarefa = document.createElement("button");
-btnExcluirTarefa.textContent = "X";
-btnExcluirTarefa.className = "delete";
-
-btnExcluirTarefa.onclick = function(){
-
-materia.tarefas.splice(j,1);
-
-salvar();
-render();
-
-};
-
-const areaBotoes = document.createElement("div");
-areaBotoes.appendChild(btnConcluir);
-areaBotoes.appendChild(btnExcluirTarefa);
-
-divTarefa.appendChild(texto);
-divTarefa.appendChild(areaBotoes);
-
-divMateria.appendChild(divTarefa);
+<div>
+<button onclick="concluir(${i},${j})">✔</button>
+<button class="delete" onclick="excluirTarefa(${i},${j})">X</button>
+</div>
+</div>
+`;
 
 });
 
-lista.appendChild(divMateria);
+div.innerHTML=`
+
+<h2>${materia.nome}</h2>
+
+<input id="tarefa${i}" placeholder="Nova tarefa">
+<button class="add" onclick="addTarefa(${i})">Adicionar tarefa</button>
+<button class="delete" onclick="excluirMateria(${i})">Excluir matéria</button>
+
+${tarefasHTML}
+
+`;
+
+lista.appendChild(div);
 
 });
+
+salvar();
 
 }
 
-botaoMateria.addEventListener("click", function(){
+document.getElementById("addMateria").addEventListener("click",function(){
 
-const nome = inputMateria.value.trim();
+const input=document.getElementById("materiaInput");
+const nome=input.value.trim();
 
 if(nome==="") return;
 
@@ -218,12 +159,54 @@ nome:nome,
 tarefas:[]
 });
 
-inputMateria.value="";
+input.value="";
 
-salvar();
 render();
 
 });
+
+function excluirMateria(i){
+
+materias.splice(i,1);
+
+render();
+
+}
+
+function addTarefa(i){
+
+const input=document.getElementById("tarefa"+i);
+const nome=input.value.trim();
+
+if(nome==="") return;
+
+materias[i].tarefas.push({
+nome:nome,
+concluida:false
+});
+
+input.value="";
+
+render();
+
+}
+
+function excluirTarefa(i,j){
+
+materias[i].tarefas.splice(j,1);
+
+render();
+
+}
+
+function concluir(i,j){
+
+materias[i].tarefas[j].concluida =
+!materias[i].tarefas[j].concluida;
+
+render();
+
+}
 
 render();
 
