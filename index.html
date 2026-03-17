@@ -21,6 +21,7 @@ header {
 
 .controls {
   padding: 10px;
+  background: #cce0ff;
 }
 
 .tabs {
@@ -49,9 +50,15 @@ header {
   display: block;
 }
 
-button {
-  margin: 5px 0;
+input, select {
   padding: 8px;
+  margin: 5px 0;
+  width: 100%;
+}
+
+button {
+  padding: 8px;
+  margin: 5px 0;
   border: none;
   background: #007bff;
   color: white;
@@ -61,12 +68,6 @@ button {
 
 button:hover {
   background: #004aad;
-}
-
-input, select {
-  padding: 8px;
-  margin: 5px 0;
-  width: 100%;
 }
 
 ul {
@@ -81,15 +82,15 @@ li {
   border-radius: 5px;
 }
 </style>
-</head>
 
+</head>
 <body>
 
 <header>🎒 Mochila Digital</header>
 
 <div class="controls">
-  <input type="text" id="novaDisciplina" placeholder="Nome da disciplina">
-  
+  <input type="text" id="nomeDisciplina" placeholder="Nome da disciplina">
+
   <select id="turno">
     <option>Matutino</option>
     <option>Vespertino</option>
@@ -104,25 +105,16 @@ li {
   </select>
 
   <button onclick="addDisciplina()">Adicionar Disciplina</button>
-  <button onclick="abrirLixeira()">🗑️ Lixeira</button>
 </div>
 
 <div class="tabs" id="tabs"></div>
 <div id="conteudos"></div>
 
-<div id="lixeira" class="content">
-  <h2>🗑️ Lixeira</h2>
-  <ul id="listaLixeira"></ul>
-</div>
-
 <script>
-let dados = JSON.parse(localStorage.getItem("mochila")) || {
-  disciplinas: [],
-  lixeira: []
-};
+let dados = JSON.parse(localStorage.getItem("mochilaDigital")) || [];
 
 function salvar() {
-  localStorage.setItem("mochila", JSON.stringify(dados));
+  localStorage.setItem("mochilaDigital", JSON.stringify(dados));
 }
 
 function render() {
@@ -132,23 +124,26 @@ function render() {
   tabs.innerHTML = "";
   conteudos.innerHTML = "";
 
-  dados.disciplinas.forEach((disc, i) => {
+  dados.forEach((disc, i) => {
 
+    // ABA
     const tab = document.createElement("div");
     tab.className = "tab";
     tab.innerText = `${disc.nome} (${disc.turno} - ${disc.dia})`;
-    tab.onclick = () => abrir(disc.nome + i);
+    tab.onclick = () => abrir(i);
     tabs.appendChild(tab);
 
+    // CONTEÚDO
     const div = document.createElement("div");
-    div.id = disc.nome + i;
     div.className = "content";
+    if (i === 0) div.classList.add("active");
 
     div.innerHTML = `
-      <h2>${disc.nome} - ${disc.turno} (${disc.dia})</h2>
+      <h2>${disc.nome}</h2>
+      <p><b>${disc.turno}</b> | ${disc.dia}</p>
 
       <input type="text" id="tarefa-${i}" placeholder="Nova tarefa">
-      <button onclick="addTarefa(${i})">Adicionar</button>
+      <button onclick="addTarefa(${i})">Adicionar tarefa</button>
 
       <ul>
         ${disc.tarefas.map((t, ti) => `
@@ -180,19 +175,19 @@ function render() {
   salvar();
 }
 
-function abrir(id) {
+function abrir(index) {
   document.querySelectorAll(".content").forEach(c => c.classList.remove("active"));
-  document.getElementById(id).classList.add("active");
+  document.querySelectorAll(".content")[index].classList.add("active");
 }
 
 function addDisciplina() {
-  const nome = document.getElementById("novaDisciplina").value;
+  const nome = document.getElementById("nomeDisciplina").value;
   const turno = document.getElementById("turno").value;
   const dia = document.getElementById("dia").value;
 
   if (!nome) return;
 
-  dados.disciplinas.push({
+  dados.push({
     nome,
     turno,
     dia,
@@ -200,13 +195,12 @@ function addDisciplina() {
     horarios: []
   });
 
-  document.getElementById("novaDisciplina").value = "";
+  document.getElementById("nomeDisciplina").value = "";
   render();
 }
 
 function removerDisciplina(i) {
-  dados.lixeira.push(dados.disciplinas[i]);
-  dados.disciplinas.splice(i, 1);
+  dados.splice(i, 1);
   render();
 }
 
@@ -214,14 +208,13 @@ function addTarefa(i) {
   const input = document.getElementById("tarefa-" + i);
   if (!input.value) return;
 
-  dados.disciplinas[i].tarefas.push(input.value);
+  dados[i].tarefas.push(input.value);
   input.value = "";
   render();
 }
 
 function removerTarefa(i, ti) {
-  dados.lixeira.push(dados.disciplinas[i].tarefas[ti]);
-  dados.disciplinas[i].tarefas.splice(ti, 1);
+  dados[i].tarefas.splice(ti, 1);
   render();
 }
 
@@ -229,50 +222,14 @@ function addHorario(i) {
   const input = document.getElementById("horario-" + i);
   if (!input.value) return;
 
-  dados.disciplinas[i].horarios.push(input.value);
+  dados[i].horarios.push(input.value);
   input.value = "";
   render();
 }
 
 function removerHorario(i, hi) {
-  dados.lixeira.push(dados.disciplinas[i].horarios[hi]);
-  dados.disciplinas[i].horarios.splice(hi, 1);
+  dados[i].horarios.splice(hi, 1);
   render();
-}
-
-function abrirLixeira() {
-  document.querySelectorAll(".content").forEach(c => c.classList.remove("active"));
-  const div = document.getElementById("lixeira");
-  div.classList.add("active");
-
-  const lista = document.getElementById("listaLixeira");
-  lista.innerHTML = dados.lixeira.map((item, i) => `
-    <li>
-      ${typeof item === "string" ? item : item.nome + " (" + item.dia + ")"}
-      <button onclick="restaurar(${i})">♻️</button>
-      <button onclick="excluirPermanentemente(${i})">❌</button>
-    </li>
-  `).join("");
-}
-
-function restaurar(i) {
-  const item = dados.lixeira[i];
-
-  if (typeof item === "object") {
-    dados.disciplinas.push(item);
-  } else {
-    alert("Itens individuais não podem ser restaurados automaticamente.");
-  }
-
-  dados.lixeira.splice(i, 1);
-  render();
-  abrirLixeira();
-}
-
-function excluirPermanentemente(i) {
-  dados.lixeira.splice(i, 1);
-  salvar();
-  abrirLixeira();
 }
 
 render();
