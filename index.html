@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<title>Mochila Digital</title>
+
+<style>
+body {
+  font-family: Arial;
+  margin: 0;
+  background: #e6f0ff;
+}
+
+header {
+  background: #004aad;
+  color: white;
+  text-align: center;
+  padding: 20px;
+  font-size: 28px;
+}
+
+.tabs {
+  display: flex;
+  flex-wrap: wrap;
+  background: #007bff;
+}
+
+.tab {
+  padding: 10px;
+  cursor: pointer;
+  color: white;
+  border: 1px solid #0056b3;
+  flex: 1 0 16%;
+  text-align: center;
+}
+
+.tab:hover {
+  background: #0056b3;
+}
+
+.content {
+  display: none;
+  padding: 20px;
+}
+
+.active {
+  display: block;
+}
+
+h2 {
+  color: #004aad;
+}
+
+input, textarea {
+  width: 100%;
+  padding: 10px;
+  margin: 8px 0;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+}
+
+button {
+  background: #007bff;
+  color: white;
+  border: none;
+  padding: 10px;
+  cursor: pointer;
+  border-radius: 5px;
+}
+
+button:hover {
+  background: #004aad;
+}
+
+ul {
+  list-style: none;
+  padding: 0;
+}
+
+li {
+  background: #cce0ff;
+  margin: 5px 0;
+  padding: 10px;
+  border-radius: 5px;
+}
+</style>
+
+</head>
+<body>
+
+<header>🎒 Mochila Digital</header>
+
+<div class="tabs" id="tabs"></div>
+
+<div id="conteudos"></div>
+
+<script>
+const disciplinas = [];
+
+// Criar 12 matérias matutino e 12 vespertino
+for (let i = 1; i <= 12; i++) {
+  disciplinas.push("Matutino " + i);
+}
+for (let i = 1; i <= 12; i++) {
+  disciplinas.push("Vespertino " + i);
+}
+
+// Criar abas e conteúdos
+const tabsDiv = document.getElementById("tabs");
+const conteudosDiv = document.getElementById("conteudos");
+
+disciplinas.forEach((disc, index) => {
+  
+  // Criar aba
+  const tab = document.createElement("div");
+  tab.className = "tab";
+  tab.innerText = disc;
+  tab.onclick = () => abrirAba(disc);
+  tabsDiv.appendChild(tab);
+
+  // Criar conteúdo
+  const div = document.createElement("div");
+  div.id = disc;
+  div.className = "content";
+
+  div.innerHTML = `
+    <h2>${disc}</h2>
+
+    <input type="text" id="input-${disc}" placeholder="Nova tarefa">
+    <button onclick="addTask('${disc}')">Adicionar tarefa</button>
+
+    <ul id="lista-${disc}"></ul>
+
+    <h3>Horários</h3>
+    <textarea id="horario-${disc}" placeholder="Ex: Segunda 08:00"></textarea>
+    <button onclick="addHorario('${disc}')">Adicionar horário</button>
+
+    <ul id="lista-horario-${disc}"></ul>
+  `;
+
+  conteudosDiv.appendChild(div);
+
+  // Ativar primeira aba
+  if (index === 0) div.classList.add("active");
+});
+
+function abrirAba(id) {
+  document.querySelectorAll(".content").forEach(c => c.classList.remove("active"));
+  document.getElementById(id).classList.add("active");
+}
+
+function addTask(disc) {
+  const input = document.getElementById("input-" + disc);
+  const texto = input.value;
+
+  if (texto.trim() === "") return;
+
+  const li = document.createElement("li");
+  li.innerText = texto;
+
+  document.getElementById("lista-" + disc).appendChild(li);
+  input.value = "";
+}
+
+function addHorario(disc) {
+  const input = document.getElementById("horario-" + disc);
+  const texto = input.value;
+
+  if (texto.trim() === "") return;
+
+  const li = document.createElement("li");
+  li.innerText = texto;
+
+  document.getElementById("lista-horario-" + disc).appendChild(li);
+  input.value = "";
+}
+</script>
+
+</body>
+</html>
