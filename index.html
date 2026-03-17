@@ -19,6 +19,10 @@ header {
   font-size: 28px;
 }
 
+.controls {
+  padding: 10px;
+}
+
 .tabs {
   display: flex;
   flex-wrap: wrap;
@@ -30,8 +34,6 @@ header {
   cursor: pointer;
   color: white;
   border: 1px solid #0056b3;
-  flex: 1 0 16%;
-  text-align: center;
 }
 
 .tab:hover {
@@ -47,29 +49,24 @@ header {
   display: block;
 }
 
-h2 {
-  color: #004aad;
-}
-
-input, textarea {
-  width: 100%;
-  padding: 10px;
-  margin: 8px 0;
-  border-radius: 5px;
-  border: 1px solid #ccc;
-}
-
 button {
+  margin: 5px 0;
+  padding: 8px;
+  border: none;
   background: #007bff;
   color: white;
-  border: none;
-  padding: 10px;
-  cursor: pointer;
   border-radius: 5px;
+  cursor: pointer;
 }
 
 button:hover {
   background: #004aad;
+}
+
+input, select {
+  padding: 8px;
+  margin: 5px 0;
+  width: 100%;
 }
 
 ul {
@@ -84,96 +81,201 @@ li {
   border-radius: 5px;
 }
 </style>
-
 </head>
+
 <body>
 
 <header>🎒 Mochila Digital</header>
 
-<div class="tabs" id="tabs"></div>
+<div class="controls">
+  <input type="text" id="novaDisciplina" placeholder="Nome da disciplina">
+  
+  <select id="turno">
+    <option>Matutino</option>
+    <option>Vespertino</option>
+  </select>
 
+  <select id="dia">
+    <option>Segunda</option>
+    <option>Terça</option>
+    <option>Quarta</option>
+    <option>Quinta</option>
+    <option>Sexta</option>
+  </select>
+
+  <button onclick="addDisciplina()">Adicionar Disciplina</button>
+  <button onclick="abrirLixeira()">🗑️ Lixeira</button>
+</div>
+
+<div class="tabs" id="tabs"></div>
 <div id="conteudos"></div>
 
+<div id="lixeira" class="content">
+  <h2>🗑️ Lixeira</h2>
+  <ul id="listaLixeira"></ul>
+</div>
+
 <script>
-const disciplinas = [];
+let dados = JSON.parse(localStorage.getItem("mochila")) || {
+  disciplinas: [],
+  lixeira: []
+};
 
-// Criar 12 matérias matutino e 12 vespertino
-for (let i = 1; i <= 12; i++) {
-  disciplinas.push("Matutino " + i);
+function salvar() {
+  localStorage.setItem("mochila", JSON.stringify(dados));
 }
-for (let i = 1; i <= 12; i++) {
-  disciplinas.push("Vespertino " + i);
+
+function render() {
+  const tabs = document.getElementById("tabs");
+  const conteudos = document.getElementById("conteudos");
+
+  tabs.innerHTML = "";
+  conteudos.innerHTML = "";
+
+  dados.disciplinas.forEach((disc, i) => {
+
+    const tab = document.createElement("div");
+    tab.className = "tab";
+    tab.innerText = `${disc.nome} (${disc.turno} - ${disc.dia})`;
+    tab.onclick = () => abrir(disc.nome + i);
+    tabs.appendChild(tab);
+
+    const div = document.createElement("div");
+    div.id = disc.nome + i;
+    div.className = "content";
+
+    div.innerHTML = `
+      <h2>${disc.nome} - ${disc.turno} (${disc.dia})</h2>
+
+      <input type="text" id="tarefa-${i}" placeholder="Nova tarefa">
+      <button onclick="addTarefa(${i})">Adicionar</button>
+
+      <ul>
+        ${disc.tarefas.map((t, ti) => `
+          <li>
+            ${t}
+            <button onclick="removerTarefa(${i}, ${ti})">❌</button>
+          </li>
+        `).join("")}
+      </ul>
+
+      <input type="text" id="horario-${i}" placeholder="Ex: 08:00 - 09:00">
+      <button onclick="addHorario(${i})">Adicionar horário</button>
+
+      <ul>
+        ${disc.horarios.map((h, hi) => `
+          <li>
+            ${h}
+            <button onclick="removerHorario(${i}, ${hi})">❌</button>
+          </li>
+        `).join("")}
+      </ul>
+
+      <button onclick="removerDisciplina(${i})">Excluir disciplina</button>
+    `;
+
+    conteudos.appendChild(div);
+  });
+
+  salvar();
 }
 
-// Criar abas e conteúdos
-const tabsDiv = document.getElementById("tabs");
-const conteudosDiv = document.getElementById("conteudos");
-
-disciplinas.forEach((disc, index) => {
-  
-  // Criar aba
-  const tab = document.createElement("div");
-  tab.className = "tab";
-  tab.innerText = disc;
-  tab.onclick = () => abrirAba(disc);
-  tabsDiv.appendChild(tab);
-
-  // Criar conteúdo
-  const div = document.createElement("div");
-  div.id = disc;
-  div.className = "content";
-
-  div.innerHTML = `
-    <h2>${disc}</h2>
-
-    <input type="text" id="input-${disc}" placeholder="Nova tarefa">
-    <button onclick="addTask('${disc}')">Adicionar tarefa</button>
-
-    <ul id="lista-${disc}"></ul>
-
-    <h3>Horários</h3>
-    <textarea id="horario-${disc}" placeholder="Ex: Segunda 08:00"></textarea>
-    <button onclick="addHorario('${disc}')">Adicionar horário</button>
-
-    <ul id="lista-horario-${disc}"></ul>
-  `;
-
-  conteudosDiv.appendChild(div);
-
-  // Ativar primeira aba
-  if (index === 0) div.classList.add("active");
-});
-
-function abrirAba(id) {
+function abrir(id) {
   document.querySelectorAll(".content").forEach(c => c.classList.remove("active"));
   document.getElementById(id).classList.add("active");
 }
 
-function addTask(disc) {
-  const input = document.getElementById("input-" + disc);
-  const texto = input.value;
+function addDisciplina() {
+  const nome = document.getElementById("novaDisciplina").value;
+  const turno = document.getElementById("turno").value;
+  const dia = document.getElementById("dia").value;
 
-  if (texto.trim() === "") return;
+  if (!nome) return;
 
-  const li = document.createElement("li");
-  li.innerText = texto;
+  dados.disciplinas.push({
+    nome,
+    turno,
+    dia,
+    tarefas: [],
+    horarios: []
+  });
 
-  document.getElementById("lista-" + disc).appendChild(li);
-  input.value = "";
+  document.getElementById("novaDisciplina").value = "";
+  render();
 }
 
-function addHorario(disc) {
-  const input = document.getElementById("horario-" + disc);
-  const texto = input.value;
-
-  if (texto.trim() === "") return;
-
-  const li = document.createElement("li");
-  li.innerText = texto;
-
-  document.getElementById("lista-horario-" + disc).appendChild(li);
-  input.value = "";
+function removerDisciplina(i) {
+  dados.lixeira.push(dados.disciplinas[i]);
+  dados.disciplinas.splice(i, 1);
+  render();
 }
+
+function addTarefa(i) {
+  const input = document.getElementById("tarefa-" + i);
+  if (!input.value) return;
+
+  dados.disciplinas[i].tarefas.push(input.value);
+  input.value = "";
+  render();
+}
+
+function removerTarefa(i, ti) {
+  dados.lixeira.push(dados.disciplinas[i].tarefas[ti]);
+  dados.disciplinas[i].tarefas.splice(ti, 1);
+  render();
+}
+
+function addHorario(i) {
+  const input = document.getElementById("horario-" + i);
+  if (!input.value) return;
+
+  dados.disciplinas[i].horarios.push(input.value);
+  input.value = "";
+  render();
+}
+
+function removerHorario(i, hi) {
+  dados.lixeira.push(dados.disciplinas[i].horarios[hi]);
+  dados.disciplinas[i].horarios.splice(hi, 1);
+  render();
+}
+
+function abrirLixeira() {
+  document.querySelectorAll(".content").forEach(c => c.classList.remove("active"));
+  const div = document.getElementById("lixeira");
+  div.classList.add("active");
+
+  const lista = document.getElementById("listaLixeira");
+  lista.innerHTML = dados.lixeira.map((item, i) => `
+    <li>
+      ${typeof item === "string" ? item : item.nome + " (" + item.dia + ")"}
+      <button onclick="restaurar(${i})">♻️</button>
+      <button onclick="excluirPermanentemente(${i})">❌</button>
+    </li>
+  `).join("");
+}
+
+function restaurar(i) {
+  const item = dados.lixeira[i];
+
+  if (typeof item === "object") {
+    dados.disciplinas.push(item);
+  } else {
+    alert("Itens individuais não podem ser restaurados automaticamente.");
+  }
+
+  dados.lixeira.splice(i, 1);
+  render();
+  abrirLixeira();
+}
+
+function excluirPermanentemente(i) {
+  dados.lixeira.splice(i, 1);
+  salvar();
+  abrirLixeira();
+}
+
+render();
 </script>
 
 </body>
